@@ -1,5 +1,5 @@
-use std::fmt;
 use std::cmp;
+use std::fmt;
 
 #[derive(Clone, Debug, PartialEq, Eq, Copy)]
 pub struct Date {
@@ -23,38 +23,80 @@ impl Date {
         let mut result = Date::new();
         result.weekday = weekday.parse::<i64>().expect("Error parsing weekday");
         if result.weekday < 0 || result.weekday > 6 {
-            return Err(format!("Weekday should be a number between 0 and 6. {} is not", weekday));
+            return Err(format!(
+                "Weekday should be a number between 0 and 6. {} is not",
+                weekday
+            ));
         }
 
         let d: Vec<&str> = date.split('/').collect();
         if d.len() != 3 {
-            return Err(format!("{} does not have expected date format (YYYY/MM/DD)", date));
+            return Err(format!(
+                "{} does not have expected date format (YYYY/MM/DD)",
+                date
+            ));
         }
-        result.year = d[0].to_string().parse::<i64>().expect("Year should be a number");
-        result.month = d[1].to_string().parse::<i64>().expect("Month should be a number");
+        result.year = d[0]
+            .to_string()
+            .parse::<i64>()
+            .expect("Year should be a number");
+        result.month = d[1]
+            .to_string()
+            .parse::<i64>()
+            .expect("Month should be a number");
         if result.month < 1 {
-            return Err(format!("Month should be a number >= 1. {} is not", result.month));
+            return Err(format!(
+                "Month should be a number >= 1. {} is not",
+                result.month
+            ));
         }
-        result.day = d[2].to_string().parse::<i64>().expect("Day should be a number");
+        result.day = d[2]
+            .to_string()
+            .parse::<i64>()
+            .expect("Day should be a number");
         if result.day < 1 {
-            return Err(format!("Day should be a number between >= 1. {} is not", result.day));
+            return Err(format!(
+                "Day should be a number between >= 1. {} is not",
+                result.day
+            ));
         }
 
         let t: Vec<&str> = time.split(':').collect();
         if t.len() != 3 {
-            return Err(format!("{} does not have expected time format (HH:mm:ss)", time));
+            return Err(format!(
+                "{} does not have expected time format (HH:mm:ss)",
+                time
+            ));
         }
-        result.hour = t[0].to_string().parse::<i64>().expect("Hour should be a number");
+        result.hour = t[0]
+            .to_string()
+            .parse::<i64>()
+            .expect("Hour should be a number");
         if result.hour < 0 || result.hour > 23 {
-            return Err(format!("Hour should be a number between 0 and 23. {} is not", result.hour));
+            return Err(format!(
+                "Hour should be a number between 0 and 23. {} is not",
+                result.hour
+            ));
         }
-        result.minute = t[1].to_string().parse::<i64>().expect("Minute should be a number");
+        result.minute = t[1]
+            .to_string()
+            .parse::<i64>()
+            .expect("Minute should be a number");
         if result.minute < 0 || result.hour > 59 {
-            return Err(format!("Minute should be a number between 0 and 59. {} is not", result.minute));
+            return Err(format!(
+                "Minute should be a number between 0 and 59. {} is not",
+                result.minute
+            ));
         }
-        result.second = t[2].to_string().parse::<i64>().expect("Second should be a number");
+        result.second = t[2]
+            .to_string()
+            .parse::<i64>()
+            .expect("Second should be a number");
         if result.hour < 0 || result.hour > 59 {
-            return Err(format!("Second should be a number between 0 and 59. {} is not", result.second));
+            return Err(format!(
+                "Second should be a number between 0 and 59. {} is not",
+                result.second
+            ));
         }
 
         Ok(result)
@@ -66,7 +108,10 @@ impl Date {
         let parts: Vec<&str> = input_s.split('T').collect();
 
         if parts.len() != 2 || parts[1].len() < 8 {
-            return Err(format!("This doesn't seem like a correct RFC3339 date: {:?}", input_s));
+            return Err(format!(
+                "This doesn't seem like a correct RFC3339 date: {:?}",
+                input_s
+            ));
         }
 
         let date = parts[0].replace("-", "/");
@@ -103,7 +148,8 @@ impl Date {
 impl fmt::Display for Date {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
-            f,"{} {}/{:0>2}/{:0>2} {:0>2}:{:0>2}:{:0>2}",
+            f,
+            "{} {}/{:0>2}/{:0>2} {:0>2}:{:0>2}:{:0>2}",
             self.weekday_to_string(),
             self.year,
             self.month,

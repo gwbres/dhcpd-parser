@@ -8,10 +8,15 @@ use crate::lex::LexItem;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LeaseKeyword {
     Abandoned,
+    Binding,
     ClientHostname,
+    Cltt,
     Ends,
+    Next,
     Hardware,
     Hostname,
+    Rewind,
+    Set,
     Starts,
     Uid,
 }
@@ -19,25 +24,34 @@ pub enum LeaseKeyword {
 impl LeaseKeyword {
     pub fn to_string(&self) -> String {
         match self {
-            &LeaseKeyword::Abandoned => "abandoned".to_owned(),
-            &LeaseKeyword::ClientHostname => "client-hostname".to_owned(),
-            &LeaseKeyword::Ends => "ends".to_owned(),
-            &LeaseKeyword::Hardware => "hardware".to_owned(),
-            &LeaseKeyword::Hostname => "hostname".to_owned(),
-            &LeaseKeyword::Starts => "starts".to_owned(),
-            &LeaseKeyword::Uid => "uid".to_owned(),
+            &Self::Abandoned => "abandoned".to_owned(),
+            &Self::Binding => "binding".to_owned(),
+            &Self::ClientHostname => "client-hostname".to_owned(),
+            &Self::Cltt => "cltt".to_owned(),
+            &Self::Ends => "ends".to_owned(),
+            &Self::Hardware => "hardware".to_owned(),
+            &Self::Hostname => "hostname".to_owned(),
+            &Self::Next => "next".to_owned(),
+            &Self::Rewind => "rewind".to_owned(),
+            &Self::Set => "set".to_owned(),
+            &Self::Starts => "starts".to_owned(),
+            &Self::Uid => "uid".to_owned(),
         }
     }
 
-    pub fn from(s: &str) -> Result<LeaseKeyword, String> {
+    pub fn from(s: &str) -> Result<Self, String> {
         match s {
-            "abandoned" => Ok(LeaseKeyword::Abandoned),
-            "client-hostname" => Ok(LeaseKeyword::ClientHostname),
-            "ends" => Ok(LeaseKeyword::Ends),
-            "hardware" => Ok(LeaseKeyword::Hardware),
-            "hostname" => Ok(LeaseKeyword::Hostname),
-            "starts" => Ok(LeaseKeyword::Starts),
-            "uid" => Ok(LeaseKeyword::Uid),
+            "abandoned" => Ok(Self::Abandoned),
+            "binding" => Ok(Self::Binding),
+            "client-hostname" => Ok(Self::ClientHostname),
+            "cltt" => Ok(Self::Cltt),
+            "ends" => Ok(Self::Ends),
+            "hardware" => Ok(Self::Hardware),
+            "hostname" => Ok(Self::Hostname),
+            "next" => Ok(Self::Next),
+            "rewind" => Ok(Self::Rewind),
+            "starts" => Ok(Self::Starts),
+            "uid" => Ok(Self::Uid),
             _ => Err(format!("'{}' is not a recognized lease option", s)),
         }
     }
@@ -95,7 +109,7 @@ impl Index<usize> for Leases {
 pub trait LeasesMethods {
     fn all(&self) -> Vec<Lease>;
 
-    #[deprecated(since = "0.4.3", note="any filtering logic should be done by user")]
+    #[deprecated(since = "0.4.3", note = "any filtering logic should be done by user")]
     fn active_by<S: AsRef<str>>(
         &self,
         field_name: LeasesField,
@@ -103,28 +117,28 @@ pub trait LeasesMethods {
         active_at: Date,
     ) -> Option<Lease>;
 
-    #[deprecated(since = "0.4.3", note="any filtering logic should be done by user")]
+    #[deprecated(since = "0.4.3", note = "any filtering logic should be done by user")]
     fn by_leased<S: AsRef<str>>(&self, ip: S) -> Option<Lease>;
-    #[deprecated(since = "0.4.3", note="any filtering logic should be done by user")]
+    #[deprecated(since = "0.4.3", note = "any filtering logic should be done by user")]
     fn by_leased_all<S: AsRef<str>>(&self, ip: S) -> Vec<Lease>;
 
-    #[deprecated(since = "0.4.3", note="any filtering logic should be done by user")]
+    #[deprecated(since = "0.4.3", note = "any filtering logic should be done by user")]
     fn by_mac<S: AsRef<str>>(&self, mac: S) -> Option<Lease>;
-    #[deprecated(since = "0.4.3", note="any filtering logic should be done by user")]
+    #[deprecated(since = "0.4.3", note = "any filtering logic should be done by user")]
     fn by_mac_all<S: AsRef<str>>(&self, mac: S) -> Vec<Lease>;
 
-    #[deprecated(since = "0.4.3", note="any filtering logic should be done by user")]
+    #[deprecated(since = "0.4.3", note = "any filtering logic should be done by user")]
     fn active_by_hostname<S: AsRef<str>>(&self, hostname: S, active_at: Date) -> Option<Lease>;
-    #[deprecated(since = "0.4.3", note="any filtering logic should be done by user")]
+    #[deprecated(since = "0.4.3", note = "any filtering logic should be done by user")]
     fn by_hostname_all<S: AsRef<str>>(&self, hostname: S) -> Vec<Lease>;
 
-    #[deprecated(since = "0.4.3", note="any filtering logic should be done by user")]
+    #[deprecated(since = "0.4.3", note = "any filtering logic should be done by user")]
     fn active_by_client_hostname<S: AsRef<str>>(
         &self,
         hostname: S,
         active_at: Date,
     ) -> Option<Lease>;
-    #[deprecated(since = "0.4.3", note="any filtering logic should be done by user")]
+    #[deprecated(since = "0.4.3", note = "any filtering logic should be done by user")]
     fn by_client_hostname_all<S: AsRef<str>>(&self, hostname: S) -> Vec<Lease>;
 
     fn new() -> Leases;
@@ -311,6 +325,16 @@ pub struct Lease {
     pub client_hostname: Option<String>,
     pub hostname: Option<String>,
     pub abandoned: bool,
+    pub cltt: Option<Date>,
+    /// Binding state.
+    /// When server is not configured to use failover protocol,
+    /// the binding state will either be active or free.
+    pub binding: Option<String>,
+    /// Next binding state, indicates state the lease
+    /// will move to when current binding expires.
+    pub next_binding: Option<String>,
+    /// Rewind binding state
+    pub rewind_binding: Option<String>,
 }
 
 impl Lease {
@@ -323,9 +347,13 @@ impl Lease {
             },
             hardware: None,
             uid: None,
+            cltt: None,
             client_hostname: None,
             hostname: None,
             abandoned: false,
+            binding: None,
+            next_binding: None,
+            rewind_binding: None,
         }
     }
 
@@ -460,6 +488,108 @@ pub fn parse_lease<'l, T: Iterator<Item = &'l LexItem>>(
             }
             LexItem::Opt(LeaseKeyword::Abandoned) => {
                 lease.abandoned = true;
+                iter.next();
+                match iter.peek().expect("Semicolon expected") {
+                    LexItem::Endl => (),
+                    s => return Err(format!("Expected semicolon, found {}", s.to_string())),
+                }
+            }
+            LexItem::Opt(LeaseKeyword::Binding) => {
+                iter.next();
+                
+                let _ = iter.peek().expect("Binding state expected").to_string();
+                iter.next();
+
+                lease.binding.replace(
+                    iter.peek()
+                        .expect("Binding identifier expected")
+                        .to_string(),
+                );
+
+                iter.next();
+                match iter.peek().expect("Semicolon expected") {
+                    LexItem::Endl => (),
+                    s => return Err(format!("Expected semicolon, found {}", s.to_string())),
+                }
+            }
+            LexItem::Opt(LeaseKeyword::Next) => {
+                iter.next();
+                
+                let _ = iter.peek().expect("Next binding state expected").to_string();
+                iter.next();
+                
+                let _ = iter.peek().expect("Next binding state expected").to_string();
+                iter.next();
+                
+                lease.next_binding.replace(
+                    iter.peek()
+                        .expect("Next binding state identifier expected")
+                        .to_string(),
+                );
+
+                iter.next();
+                match iter.peek().expect("Semicolon expected") {
+                    LexItem::Endl => (),
+                    s => return Err(format!("Expected semicolon, found {}", s.to_string())),
+                }
+            }
+            LexItem::Opt(LeaseKeyword::Rewind) => {
+                iter.next();
+                
+                let _ = iter.peek().expect("Rewind binding state expected").to_string();
+                iter.next();
+                
+                let _ = iter.peek().expect("Rewind binding state expected").to_string();
+                iter.next();
+
+                lease.rewind_binding.replace(
+                    iter.peek()
+                        .expect("Next binding state identifier expected")
+                        .to_string(),
+                );
+
+                iter.next();
+                match iter.peek().expect("Semicolon expected") {
+                    LexItem::Endl => (),
+                    s => return Err(format!("Expected semicolon, found {}", s.to_string())),
+                }
+            }
+            // Cltt option is not really exploited at the moment
+            LexItem::Opt(LeaseKeyword::Cltt) => {
+                iter.next();
+                let weekday = iter
+                    .peek()
+                    .expect("Weekday for cltt date expected")
+                    .to_string();
+                iter.next();
+                let date = iter
+                    .peek()
+                    .expect("Date for cltt date expected")
+                    .to_string();
+                iter.next();
+                let time = iter
+                    .peek()
+                    .expect("Time for cltt date expected")
+                    .to_string();
+                iter.next();
+
+                let tz = iter
+                    .peek()
+                    .expect("Timezone or semicolon expected")
+                    .to_string();
+                if tz != LexItem::Endl.to_string() {
+                    iter.next();
+                    match iter.peek().expect("Semicolon expected") {
+                        LexItem::Endl => (),
+                        s => return Err(format!("Expected semicolon, found {}", s.to_string())),
+                    }
+                }
+
+                lease.cltt.replace(Date::from(weekday, date, time)?);
+            }
+            // Set option is not really exploited at the moment
+            LexItem::Opt(LeaseKeyword::Set) => {
+                iter.next();
                 iter.next();
                 match iter.peek().expect("Semicolon expected") {
                     LexItem::Endl => (),

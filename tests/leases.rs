@@ -36,6 +36,10 @@ fn all_options_test() {
         starts 2 2019/01/01 22:00:00 UTC;
         ends 2 2019/01/01 22:00:00 UTC;
         hardware type 11:11:11:11:11:11;
+        binding state active;
+        next binding state abandoned;
+        rewind binding state free;
+        cltt 2 2019/01/01 22:00:00 UTC;
         uid Client1;
         client-hostname \"CLIENTHOSTNAME\";
         hostname \"TESTHOSTNAME\";
