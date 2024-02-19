@@ -496,7 +496,7 @@ pub fn parse_lease<'l, T: Iterator<Item = &'l LexItem>>(
             }
             LexItem::Opt(LeaseKeyword::Binding) => {
                 iter.next();
-                
+
                 let _ = iter.peek().expect("Binding state expected").to_string();
                 iter.next();
 
@@ -514,13 +514,19 @@ pub fn parse_lease<'l, T: Iterator<Item = &'l LexItem>>(
             }
             LexItem::Opt(LeaseKeyword::Next) => {
                 iter.next();
-                
-                let _ = iter.peek().expect("Next binding state expected").to_string();
+
+                let _ = iter
+                    .peek()
+                    .expect("Next binding state expected")
+                    .to_string();
                 iter.next();
-                
-                let _ = iter.peek().expect("Next binding state expected").to_string();
+
+                let _ = iter
+                    .peek()
+                    .expect("Next binding state expected")
+                    .to_string();
                 iter.next();
-                
+
                 lease.next_binding.replace(
                     iter.peek()
                         .expect("Next binding state identifier expected")
@@ -535,11 +541,17 @@ pub fn parse_lease<'l, T: Iterator<Item = &'l LexItem>>(
             }
             LexItem::Opt(LeaseKeyword::Rewind) => {
                 iter.next();
-                
-                let _ = iter.peek().expect("Rewind binding state expected").to_string();
+
+                let _ = iter
+                    .peek()
+                    .expect("Rewind binding state expected")
+                    .to_string();
                 iter.next();
-                
-                let _ = iter.peek().expect("Rewind binding state expected").to_string();
+
+                let _ = iter
+                    .peek()
+                    .expect("Rewind binding state expected")
+                    .to_string();
                 iter.next();
 
                 lease.rewind_binding.replace(
