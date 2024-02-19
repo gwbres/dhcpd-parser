@@ -46,7 +46,10 @@ fn all_options_test() {
         client-hostname \"CLIENTHOSTNAME\";
         hostname \"TESTHOSTNAME\";
         abandoned;
-    }",
+    }
+    
+    # another comment
+    ",
     );
 
     assert!(res.is_ok());
