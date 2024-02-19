@@ -32,6 +32,8 @@ fn dates_test() {
 fn all_options_test() {
     let res = parser::parse(
         "
+    # this is a comment
+
     lease 192.168.0.2 {
         starts 2 2019/01/01 22:00:00 UTC;
         ends 2 2019/01/01 22:00:00 UTC;

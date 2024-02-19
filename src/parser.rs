@@ -13,19 +13,25 @@ pub struct ParserResult {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ConfigKeyword {
     Lease,
+    Comment,
 }
 
 impl ConfigKeyword {
     pub fn to_string(&self) -> String {
         match self {
-            &ConfigKeyword::Lease => "lease".to_owned(),
+            &Self::Lease => "lease".to_owned(),
+            &Self::Comment => "#".to_owned(),
         }
     }
 
-    pub fn from(s: &str) -> Result<ConfigKeyword, String> {
-        match s {
-            "lease" => Ok(ConfigKeyword::Lease),
-            _ => Err(format!("'{}' declaration is not supported", s)),
+    pub fn from(s: &str) -> Result<Self, String> {
+        if s.starts_with('#') {
+            Ok(Self::Comment)
+        } else {
+            match s {
+                "lease" => Ok(Self::Lease),
+                _ => Err(format!("'{}' declaration is not supported", s)),
+            }
         }
     }
 }
@@ -38,6 +44,7 @@ fn parse_config(tokens: Vec<LexItem>) -> Result<ParserResult, String> {
 
     while let Some(token) = it.peek() {
         match token {
+            LexItem::Decl(ConfigKeyword::Comment) => {}
             LexItem::Decl(ConfigKeyword::Lease) => {
                 if lease != Lease::new() {
                     leases.push(lease.clone());
